@@ -61,7 +61,7 @@ using Eigen::Vector3d;
 // system of the multi-camera rig. X_i is the world position of the
 // corresponding 3D point.
 typedef pose_lib::CameraPose GenCamPose;
-typedef std::vector<GenCamPose, aligned_allocator<CameraPose>> GenCamPoses;
+typedef std::vector<GenCamPose, aligned_allocator<GenCamPose>> GenCamPoses;
 
 // Defines a camera with intrinsics and extrinsics.
 // We use a simple camera model, where we assume that all 3D points have
@@ -126,7 +126,7 @@ class GeneralizedPoseSolverGP4Ps {
 
   // Returns 0 if no model could be estimated and 1 otherwise.
   int NonMinimalSolver(const std::vector<int>& sample,
-                       GenCamPoses* pose) const;
+                       GenCamPose* pose) const;
 
   // Evaluates the model on the i-th data point.
   double EvaluateModelOnPoint(const GenCamPose& pose, int i) const;

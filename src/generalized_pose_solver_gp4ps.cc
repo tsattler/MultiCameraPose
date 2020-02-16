@@ -64,21 +64,27 @@ int GeneralizedPoseSolverGP4Ps::MinimalSolver(
     const std::vector<int>& sample, GenCamPoses* poses) const {
   poses->clear();
   
-  ViewingRays sample_rays(4);
-  Points3D sample_points3D(4);
-  Points3D sample_positions(4);
+  std::vector<Vector3d> sample_rays(4);
+  std::vector<Vector3d> sample_points3D(4);
+  std::vector<Vector3d> sample_positions(4);
   
   for (int i = 0; i < 4; ++i) {
     sample_rays[i] = rays_[sample[i]];
     sample_points3D[i] = points3D_[sample[i]];
     sample_positions[i] = rig_.cameras[camera_indices_[sample[i]]].c;
   }
-  
-  pose_lib::CameraPoses pl_poses;
+//  std::cout << " Calling gp4s" << std::endl;
+  pose_lib::CameraPoseVector pl_poses;
   pose_lib::gp4ps(sample_positions, sample_rays, sample_points3D, &pl_poses);
+//  std::cout << " done " << std::endl;
+//  std::cout << pl_poses.size() << std::endl;
   if (pl_poses.empty()) return 0;
   for (const pose_lib::CameraPose& pose : pl_poses) {
-    const double kError = EvaluateModelOnPoint(pose, sample[5]);
+//    std::cout << pose.alpha << " " << sample.size() << std::endl;
+//    std::cout << pose.R << std::endl;
+//    std::cout << pose.t.transpose() << std::endl;
+    const double kError = EvaluateModelOnPoint(pose, sample[4]);
+//    std::cout << kError << std::endl;
     if (kError < squared_inlier_threshold_) {
       poses->push_back(pose);
       break;
@@ -119,7 +125,7 @@ double GeneralizedPoseSolverGP4Ps::EvaluateModelOnPoint(
 }
 
 void GeneralizedPoseSolverGP4Ps::LeastSquares(
-    const std::vector<int>& sample, MultiCameraRig* pose) const {
+    const std::vector<int>& sample, GenCamPose* pose) const {
   // For now, do nothing and simply return the pose, i.e., no refinement done.
 }
 

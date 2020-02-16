@@ -147,8 +147,8 @@ bool LoadListIntrinsicsAndExtrinsics(const std::string& filename,
 
 // Loads the 2D-3D matches found for that image from a text file.
 bool LoadMatches(const std::string& filename, bool invert_Y_Z,
-                 ransac_lib::calibrated_absolute_pose::Points2D* points2D,
-                 ransac_lib::calibrated_absolute_pose::Points3D* points3D) {
+                 multi_camera_pose::Points2D* points2D,
+                 multi_camera_pose::Points3D* points3D) {
   points2D->clear();
   points3D->clear();
 
@@ -192,17 +192,17 @@ bool AssembleMultiCameraRig(const Queries& queries,
   // Uses the first camera as the reference camera.
   rig->cameras.resize(kNumCams);
   rig->cameras[0].R = Eigen::Matrix3d::Identity();
-  rig->cameras[0].t = Eigen::Vector3d::Zeros();
-  rig->cameras[0].c = Eigen::Vector3d::Zeros();
+  rig->cameras[0].t = Eigen::Vector3d::Zero();
+  rig->cameras[0].c = Eigen::Vector3d::Zero();
   rig->cameras[0].focal_x = queries[indices[0]].focal_x;
   rig->cameras[0].focal_y = queries[indices[0]].focal_y;
   
   Eigen::Matrix3d R0(queries[indices[0]].q);
-  Eigen::Matrix3d t0 = -R0 * queries[indices[0]].c;
+  Eigen::Vector3d t0 = -R0 * queries[indices[0]].c;
   
   for (int i = 1; i < kNumCams; ++i) {
     Eigen::Matrix3d Ri(queries[indices[i]].q);
-    Eigen::Matrix3d ti = -Ri * queries[indices[i]].c;
+    Eigen::Vector3d ti = -Ri * queries[indices[i]].c;
     
     Eigen::Matrix3d R = Ri * R0.transpose();
     Eigen::Vector3d t = ti - R * t0;
@@ -221,7 +221,7 @@ bool AssembleMultiCameraRig(const Queries& queries,
 
 int main(int argc, char** argv) {
   using ransac_lib::LocallyOptimizedMSAC;
-  using multi_camera_pose::CalibratedAbsolutePoseEstimator;
+  using multi_camera_pose::GeneralizedPoseSolverGP4Ps;
   using multi_camera_pose::GenCamPose;
   using multi_camera_pose::GenCamPoses;
   using multi_camera_pose::Points2D;
@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
   
   std::vector<PoseWInliers, Eigen::aligned_allocator<PoseWInliers>> best_poses(kNumQuery);
   for (int i = 0; i < kNumQuery; ++i) {
-    best_poses[i].inliers = 0;
+    best_poses[i].num_inliers = 0;
     best_poses[i].score = std::numeric_limits<double>::max();
   }
   
@@ -287,7 +287,10 @@ int main(int argc, char** argv) {
     std::vector<int> rig_indices(cams_end - i);
     std::iota(rig_indices.begin(), rig_indices.end(), i);
     MultiCameraRig rig;
+    std::cout << " Assembling camera rig" << std::endl;
     if (!AssembleMultiCameraRig(query_data, rig_indices, &rig)) continue;
+    
+    std::cout << " done" << std::endl;
     
     // Obtains the matching data.
     Points2D points2D_rig;
@@ -310,10 +313,11 @@ int main(int argc, char** argv) {
       
       points2D_rig.insert(points2D_rig.end(), points2D.begin(), points2D.end());
       points3D_rig.insert(points3D_rig.end(), points3D.begin(), points3D.end());
-      camera_ids.insert(camera_ids.end(), camera_ids.begin(), camera_ids.end());
+      camera_ids.insert(camera_ids.end(), id.begin(), id.end());
     }
     
     const int kNumMatches = static_cast<int>(points2D_rig.size());
+    std::cout << " Found " << kNumMatches << " matches" << std::endl;
     if (kNumMatches <= 5) {
       std::cout << " Found only " << kNumMatches << " matches for query image "
                 << query_data[i].name << " -> skipping image" << std::endl;
@@ -377,7 +381,7 @@ int main(int argc, char** argv) {
     // Updates the poses of all cameras in the rig.
     for (int j = i; j < cams_end; ++j) {
       if (ransac_stats.best_model_score < best_poses[j].score) {
-        best_poses[j].inliers = num_ransac_inliers;
+        best_poses[j].num_inliers = num_ransac_inliers;
         best_poses[j].score = ransac_stats.best_model_score;
         Eigen::Matrix3d R = rig.cameras[j - i].R * best_model.R;
         Eigen::Vector3d t = R * best_model.t + best_model.alpha * rig.cameras[j - i].t;
@@ -390,7 +394,7 @@ int main(int argc, char** argv) {
   }
 
   for (int i = 0; i < kNumQuery; ++i) {
-    if (best_poses[i].inliers <= 5) continue;
+    if (best_poses[i].num_inliers <= 5) continue;
     
     Eigen::Matrix3d R = best_poses[i].R;
     Eigen::Vector3d t = best_poses[i].t;

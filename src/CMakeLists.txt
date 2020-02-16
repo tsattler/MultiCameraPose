@@ -19,21 +19,17 @@ include_directories (
   ${EIGEN_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${POSELIB_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/ext/RansacLib
 )
 
-#add_executable (line_estimation line_estimation.cc line_estimator.cc #line_estimator.h)
+#add_executable (multi_camera_pose generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/types.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.cc ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.h ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.cc)
+#target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY}) # ${CERES_LIBRARIES})
 
-#add_executable (hybrid_line_estimation hybrid_line_estimation.cc #hybrid_line_estimator.cc hybrid_line_estimator.h)
+add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h)
+target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY}) # ${CERES_LIBRARIES})
 
-#add_executable (camera_pose_estimation camera_pose_estimation.cc #calibrated_absolute_pose_estimator.cc calibrated_absolute_pose_estimator.h)
-#target_link_libraries (camera_pose_estimation opengv ${CERES_LIBRARIES})
-
-#add_executable (localization localization.cc #calibrated_absolute_pose_estimator.cc calibrated_absolute_pose_estimator.h)
-#target_link_libraries (localization opengv
-#                                    ${CERES_LIBRARIES})
-
-#add_executable (localization_with_gt localization_with_gt.cc #calibrated_absolute_pose_estimator.cc calibrated_absolute_pose_estimator.h)
-#target_link_libraries (localization_with_gt opengv ${CERES_LIBRARIES})
-
-#add_executable (localization_gc localization_gc.cc #calibrated_absolute_pose_estimator.cc calibrated_absolute_pose_estimator.h)
-#target_link_libraries (localization opengv)
+if(MSVC)	
+  target_compile_options(multi_camera_pose PRIVATE /bigobj /fp:fast)
+else()
+  target_compile_options(multi_camera_pose PRIVATE -march=native -Wall -Werror -Wno-sign-compare -Wno-unused-variable -ffast-math)
+endif()
