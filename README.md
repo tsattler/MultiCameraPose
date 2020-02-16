@@ -12,3 +12,14 @@ RansacLib is included as a submodule. After cloning the repository, run
 ```
 git submodule update --init --recursive
 ```
+
+## Citing
+When using the pose estimator based on the GP4Ps solver, please cite
+```
+@InProceedings{Kukelova2016CVPR,
+author = {Kukelova, Zuzana and Heller, Jan and Fitzgibbon, Andrew},
+title = {Efficient Intersection of Three Quadrics and Applications in Computer Vision},
+booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+year = {2016}
+}
+```
