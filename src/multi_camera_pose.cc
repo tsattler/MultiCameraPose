@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Torsten Sattler
+// Copyright (c) 2020, Torsten Sattler
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
