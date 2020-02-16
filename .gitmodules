@@ -1,0 +1,3 @@
+[submodule "ext/RansacLib"]
+	path = ext/RansacLib
+	url = https://github.com/tsattler/RansacLib
