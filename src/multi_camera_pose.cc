@@ -378,13 +378,15 @@ int main(int argc, char** argv) {
 
     if (num_ransac_inliers < 5) continue;
     
+    std::cout << best_model.alpha << std::endl;
+    
     // Updates the poses of all cameras in the rig.
     for (int j = i; j < cams_end; ++j) {
       if (ransac_stats.best_model_score < best_poses[j].score) {
         best_poses[j].num_inliers = num_ransac_inliers;
         best_poses[j].score = ransac_stats.best_model_score;
         Eigen::Matrix3d R = rig.cameras[j - i].R * best_model.R;
-        Eigen::Vector3d t = R * best_model.t + best_model.alpha * rig.cameras[j - i].t;
+        Eigen::Vector3d t = rig.cameras[j - i].R * best_model.t + best_model.alpha * rig.cameras[j - i].t;
         Eigen::Vector3d c = -R.transpose() * t;
         best_poses[j].R = R;
         best_poses[j].t = t;
