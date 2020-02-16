@@ -8,6 +8,5 @@ This project depends on two submodules:
 
 After cloning the repository, run
 ```
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
