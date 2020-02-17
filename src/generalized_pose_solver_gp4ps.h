@@ -96,9 +96,11 @@ typedef std::vector<Matrix3d, aligned_allocator<Matrix3d>> CameraRotations;
 // the PoseLib the GP4P+s solver as a minimal solver and Ceres for non-linear
 // optimization. The non-minimal solver is simply implemented as first calling
 // the minimal solver followed by non-linear optimization.
-// To avoid returning multiple models by the minimal solver, a fifth point is
-// used to pick at most one model. The output is the generalized absolute pose
-// of each pose in the multi-camera rig in world coordinates as defined above.
+// To avoid returning multiple models by the minimal solver, the fourth point is
+// used to reject models. This can be done as not all constraints provided by
+// the fourth point are used. However, it can happen that multiple models pass
+// this test. The output is the generalized absolute pose of each pose in the
+// multi-camera rig in world coordinates as defined above.
 class GeneralizedPoseSolverGP4Ps {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
