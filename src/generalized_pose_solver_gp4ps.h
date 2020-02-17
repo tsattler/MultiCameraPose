@@ -115,9 +115,9 @@ class GeneralizedPoseSolverGP4Ps {
       const Points2D& points2D, const Points3D& points3D,
       const std::vector<int>& camera_indices);
 
-  inline int min_sample_size() const { return 5; }
+  inline int min_sample_size() const { return 4; }
 
-  inline int non_minimal_sample_size() const { return 5; }
+  inline int non_minimal_sample_size() const { return 4; }
 
   inline int num_data() const { return num_data_; }
 

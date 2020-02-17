@@ -160,10 +160,10 @@ int GeneralizedPoseSolverGP4Ps::MinimalSolver(
 
   if (pl_poses.empty()) return 0;
   for (const pose_lib::CameraPose& pose : pl_poses) {
-    const double kError = EvaluateModelOnPoint(pose, sample[4]);
+    const double kError = EvaluateModelOnPoint(pose, sample[3]);
     if (kError < squared_inlier_threshold_) {
       poses->push_back(pose);
-      break;
+//      break;
     }
   }
 
