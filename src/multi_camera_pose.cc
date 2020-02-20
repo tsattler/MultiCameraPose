@@ -80,6 +80,8 @@ struct QueryData {
 
   Eigen::Quaterniond q;
   Eigen::Vector3d c;
+  
+  std::string camera_type;
 
   std::vector<double> radial;
 };
@@ -94,6 +96,71 @@ struct PoseWInliers {
 };
 
 typedef std::vector<QueryData, Eigen::aligned_allocator<QueryData>> Queries;
+
+// Distortion function, implementing various camera models.
+void Distortion(const QueryData& camera, const double u, const double v,
+                double* du, double* dv) {
+  if (camera.camera_type.compare("SIMPLE_RADIAL") == 0) {
+    const double kR2 = u * u + v * v;
+    const double kRadial = camera.radial[0] * kR2;
+    *du = u * kRadial;
+    *dv = v * kRadial;
+  } else if (camera.camera_type.compare("RADIAL") == 0) {
+    const double kR2 = u * u + v * v;
+    const double kRadial = camera.radial[0] * kR2 + camera.radial[1] * kR2 * kR2;
+    *du = u * kRadial;
+    *dv = v * kRadial;
+  } else {
+    std::cerr << " ERROR: Distortion function for camera model "
+              << camera.camera_type << " not yet implemented" << std::endl;
+  }
+}
+
+// Undistortion code taken from Colmap.
+// TODO(sattler): Replace with own code before release.
+// Assumes that principal point has been subtracted and that the coordinates
+// have been divided by the focal length.
+void IterativeUndistortion(const QueryData& camera, double* u, double* v) {
+  // Parameters for Newton iteration using numerical differentiation with
+  // central differences, 100 iterations should be enough even for complex
+  // camera models with higher order terms.
+  const size_t kNumIterations = 100;
+  const double kMaxStepNorm = 1e-10;
+  const double kRelStepSize = 1e-6;
+
+  Eigen::Matrix2d J;
+  const Eigen::Vector2d x0(*u, *v);
+  Eigen::Vector2d x(*u, *v);
+  Eigen::Vector2d dx;
+  Eigen::Vector2d dx_0b;
+  Eigen::Vector2d dx_0f;
+  Eigen::Vector2d dx_1b;
+  Eigen::Vector2d dx_1f;
+
+  for (size_t i = 0; i < kNumIterations; ++i) {
+    const double step0 = std::max(std::numeric_limits<double>::epsilon(),
+                                  std::abs(kRelStepSize * x(0)));
+    const double step1 = std::max(std::numeric_limits<double>::epsilon(),
+                                  std::abs(kRelStepSize * x(1)));
+    Distortion(camera, x(0), x(1), &dx(0), &dx(1));
+    Distortion(camera, x(0) - step0, x(1), &dx_0b(0), &dx_0b(1));
+    Distortion(camera, x(0) + step0, x(1), &dx_0f(0), &dx_0f(1));
+    Distortion(camera, x(0), x(1) - step1, &dx_1b(0), &dx_1b(1));
+    Distortion(camera, x(0), x(1) + step1, &dx_1f(0), &dx_1f(1));
+    J(0, 0) = 1 + (dx_0f(0) - dx_0b(0)) / (2 * step0);
+    J(0, 1) = (dx_1f(0) - dx_1b(0)) / (2 * step1);
+    J(1, 0) = (dx_0f(1) - dx_0b(1)) / (2 * step0);
+    J(1, 1) = 1 + (dx_1f(1) - dx_1b(1)) / (2 * step1);
+    const Eigen::Vector2d step_x = J.inverse() * (x + dx - x0);
+    x -= step_x;
+    if (step_x.squaredNorm() < kMaxStepNorm) {
+      break;
+    }
+  }
+
+  *u = x(0);
+  *v = x(1);
+}
 
 // Loads the list of query images together with their intrinsics and extrinsics.
 bool LoadListIntrinsicsAndExtrinsics(const std::string& filename,
@@ -115,6 +182,7 @@ bool LoadListIntrinsicsAndExtrinsics(const std::string& filename,
 
     QueryData q;
     s_stream >> q.name >> camera_type >> q.width >> q.height;
+    q.camera_type = camera_type;
     if (camera_type.compare("SIMPLE_RADIAL") == 0 ||
         camera_type.compare("VSFM") == 0) {
       q.radial.resize(1);
@@ -134,6 +202,17 @@ bool LoadListIntrinsicsAndExtrinsics(const std::string& filename,
       q.radial.resize(1);
       s_stream >> q.focal_x >> q.c_x >> q.c_y >> q.radial[0];
       q.focal_y = q.focal_x;
+    } else if (camera_type.compare("BROWN_3_PARAMS") == 0) {
+      q.radial.resize(3);
+      s_stream >> q.focal_x >> q.focal_y >> q.c_x >> q.c_y >> q.radial[0]
+               >> q.radial[1] >> q.radial[2];
+    } if (camera_type.compare("RADIAL") == 0) {
+      q.radial.resize(2);
+      s_stream >> q.focal_x >> q.c_x >> q.c_y >> q.radial[0] >> q.radial[1];
+      q.focal_y = q.focal_x;
+    } else {
+      std::cerr << " ERROR: Unknown camera model " << camera_type << std::endl;
+      return false;
     }
     s_stream >> q.q.w() >> q.q.x() >> q.q.y() >> q.q.z() >> q.c[0] >> q.c[1] >>
         q.c[2];
@@ -230,12 +309,14 @@ int main(int argc, char** argv) {
 
   std::cout << " usage: " << argv[0] << " images_with_intrinsics outfile "
             << "inlier_threshold num_lo_steps invert_Y_Z points_centered "
-            << " sequence_length [match-file postfix]" << std::endl;
-  if (argc < 8) return -1;
+            << " undistortion_needed sequence_length [match-file postfix]"
+            << std::endl;
+  if (argc < 9) return -1;
 
   bool invert_Y_Z = static_cast<bool>(atoi(argv[5]));
   bool points_centered = static_cast<bool>(atoi(argv[6]));
-  int sequence_length = atoi(argv[7]);
+  bool undistortion_needed = static_cast<bool>(atoi(argv[7]));
+  int sequence_length = atoi(argv[8]);
 
   Queries query_data;
   std::string list(argv[1]);
@@ -254,8 +335,8 @@ int main(int argc, char** argv) {
   }
 
   std::string matchfile_postfix = ".individual_datasets.matches.txt";
-  if (argc >= 9) {
-    matchfile_postfix = std::string(argv[8]);
+  if (argc >= 10) {
+    matchfile_postfix = std::string(argv[9]);
   }
 
   std::vector<double> orientation_error(kNumQuery,
@@ -330,6 +411,16 @@ int main(int argc, char** argv) {
       for (int j = 0; j < kNumMatches; ++j) {
         points2D_rig[j][0] -= query_data[camera_ids[j] + i].c_x;
         points2D_rig[j][1] -= query_data[camera_ids[j] + i].c_y;
+      }
+    }
+    
+    if (undistortion_needed) {
+      for (int j = 0; j < kNumMatches; ++j) {
+        double u = points2D_rig[j][0] / query_data[camera_ids[j] + i].focal_x;
+        double v = points2D_rig[j][1] / query_data[camera_ids[j] + i].focal_y;
+        IterativeUndistortion(query_data[camera_ids[j] + i], &u, &v);
+        points2D_rig[j][0] = u * query_data[camera_ids[j] + i].focal_x;
+        points2D_rig[j][1] = u * query_data[camera_ids[j] + i].focal_y;
       }
     }
 

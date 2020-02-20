@@ -12,16 +12,18 @@ else (POSELIB_INCLUDE_DIR)
   find_path(POSELIB_INCLUDE_DIR PoseLib/gp4ps.h
       PATHS
       "/Users/sattlert/code/PoseLib"
+      "/home/torsat/code/external/PoseLib"
     )
 
   if(POSELIB_INCLUDE_DIR)
     set(POSELIB_FOUND TRUE)
 
-    set(POSELIB_LIBRARY_DIR "/Users/sattlert/code/PoseLib/build" )
+#     set(POSELIB_LIBRARY_DIR "/Users/sattlert/code/PoseLib/build" )
+    set(POSELIB_LIBRARY_DIR "/home/torsat/code/external/PoseLib/build" )
 
   else(POSELIB_INCLUDE_DIR)
     set(POSELIB_FOUND FALSE)
   endif(POSELIB_INCLUDE_DIR)
 endif(POSELIB_INCLUDE_DIR)
 
-find_library(POSELIB_LIBRARY NAMES poselib HINTS "/Users/sattlert/code/PoseLib/build")
+find_library(POSELIB_LIBRARY NAMES poselib HINTS "/Users/sattlert/code/PoseLib/build" "/home/torsat/code/external/PoseLib/build")
