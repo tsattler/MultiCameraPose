@@ -110,6 +110,14 @@ void Distortion(const QueryData& camera, const double u, const double v,
     const double kRadial = camera.radial[0] * kR2 + camera.radial[1] * kR2 * kR2;
     *du = u * kRadial;
     *dv = v * kRadial;
+  } else if (camera.camera_type.compare("BROWN_3_PARAMS") == 0) {
+    const double kR2 = u * u + v * v;
+    const double kRadial = camera.radial[0] * kR2 + camera.radial[1] * kR2 * kR2 + camera.radial[2] * kR2 * kR2 * kR2;
+    *du = u * kRadial;
+    *dv = v * kRadial;
+  } else if (camera.camera_type.compare("PINHOLE") == 0) {
+    *du = 0;
+    *dv = 0;    
   } else {
     std::cerr << " ERROR: Distortion function for camera model "
               << camera.camera_type << " not yet implemented" << std::endl;
@@ -206,16 +214,22 @@ bool LoadListIntrinsicsAndExtrinsics(const std::string& filename,
       q.radial.resize(3);
       s_stream >> q.focal_x >> q.focal_y >> q.c_x >> q.c_y >> q.radial[0]
                >> q.radial[1] >> q.radial[2];
-    } if (camera_type.compare("RADIAL") == 0) {
+    } else if (camera_type.compare("RADIAL") == 0) {
       q.radial.resize(2);
       s_stream >> q.focal_x >> q.c_x >> q.c_y >> q.radial[0] >> q.radial[1];
       q.focal_y = q.focal_x;
     } else {
-      std::cerr << " ERROR: Unknown camera model " << camera_type << std::endl;
+      std::cerr << " ERROR: Unknown camera model " << camera_type << " for "
+                << "image " << q.name << std::endl;
       return false;
     }
     s_stream >> q.q.w() >> q.q.x() >> q.q.y() >> q.q.z() >> q.c[0] >> q.c[1] >>
         q.c[2];
+    
+//     std::cout << q.c.transpose() << std::endl;
+//     Eigen::Vector3d t = q.c;
+//     Eigen::Matrix3d R(q.q);
+//     q.c = -R.transpose() * t;
     query_images->push_back(q);
   }
 
@@ -420,7 +434,7 @@ int main(int argc, char** argv) {
         double v = points2D_rig[j][1] / query_data[camera_ids[j] + i].focal_y;
         IterativeUndistortion(query_data[camera_ids[j] + i], &u, &v);
         points2D_rig[j][0] = u * query_data[camera_ids[j] + i].focal_x;
-        points2D_rig[j][1] = u * query_data[camera_ids[j] + i].focal_y;
+        points2D_rig[j][1] = v * query_data[camera_ids[j] + i].focal_y;
       }
     }
 
@@ -487,7 +501,7 @@ int main(int argc, char** argv) {
   }
 
   for (int i = 0; i < kNumQuery; ++i) {
-    if (best_poses[i].num_inliers <= 5) continue;
+//     if (best_poses[i].num_inliers <= 5) continue;
     
     Eigen::Matrix3d R = best_poses[i].R;
     Eigen::Vector3d t = best_poses[i].t;
