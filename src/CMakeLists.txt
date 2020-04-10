@@ -22,14 +22,16 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/ext/RansacLib
 )
 
-#add_executable (multi_camera_pose generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/types.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.cc ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.h ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.cc)
-#target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY}) # ${CERES_LIBRARIES})
-
-add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h)
+add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h common.h)
 target_link_libraries (multi_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
+
+add_executable (fixed_rig_camera_pose fixed_rig_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h common.h)
+target_link_libraries (fixed_rig_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
 
 if(MSVC)	
   target_compile_options(multi_camera_pose PRIVATE /bigobj /fp:fast)
+  target_compile_options(fixed_rig_camera_pose PRIVATE /bigobj /fp:fast)
 else()
   target_compile_options(multi_camera_pose PRIVATE -march=native -Wall -Werror -Wno-sign-compare -Wno-unused-variable -ffast-math)
+  target_compile_options(fixed_rig_camera_pose PRIVATE -march=native -Wall -Werror -Wno-sign-compare -Wno-unused-variable -ffast-math)
 endif()
