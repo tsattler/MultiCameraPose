@@ -34,7 +34,7 @@
 #include <ceres/rotation.h>
 #include <PoseLib/gp3p.h>
 
-#include "generalized_pose_solver_gp4ps.h"
+#include "generalized_pose_solver_gp3p.h"
 
 namespace multi_camera_pose {
 
