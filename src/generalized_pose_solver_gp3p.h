@@ -28,8 +28,8 @@
 //
 // author: Torsten Sattler, torsten.sattler.de@googlemail.com
 
-#ifndef MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP4PS_H_
-#define MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP4PS_H_
+#ifndef MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP3P_H_
+#define MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP3P_H_
 
 #include <algorithm>
 #include <cmath>
@@ -50,15 +50,13 @@
 namespace multi_camera_pose {
 
 // Implements a camera pose solver for generalized calibrated cameras. Uses
-// the PoseLib the GP4P+s solver as a minimal solver and Ceres for non-linear
+// the PoseLib the GP3P solver as a minimal solver and Ceres for non-linear
 // optimization. The non-minimal solver is simply implemented as first calling
 // the minimal solver followed by non-linear optimization.
-// To avoid returning multiple models by the minimal solver, the fourth point is
-// used to reject models. This can be done as not all constraints provided by
-// the fourth point are used. However, it can happen that multiple models pass
-// this test. The output is the generalized absolute pose of each pose in the
-// multi-camera rig in world coordinates as defined in types.h.
-class GeneralizedPoseSolverGP4Ps {
+// To avoid returning multiple models by the minimal solver, a fourth point is
+// used to reject models. The output is the generalized absolute pose of each
+// pose in the multi-camera rig in world coordinates as defined in types.h.
+class GeneralizedPoseSolverGP3P {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -68,8 +66,8 @@ class GeneralizedPoseSolverGP4Ps {
   // around the principal point (i.e., the principal has already been
   // subtracted) and to be undistorted.
   // In addition, the squared inlier threshold used by *SAC is required as
-  // input. It is used to pick at most one of the solutions created by GP4Ps.
-  GeneralizedPoseSolverGP4Ps(
+  // input. It is used to pick at most one of the solutions created by GP3P.
+  GeneralizedPoseSolverGP3P(
       const MultiCameraRig& rig, const double squared_inlier_threshold,
       const Points2D& points2D, const Points3D& points3D,
       const std::vector<int>& camera_indices);
@@ -111,4 +109,4 @@ class GeneralizedPoseSolverGP4Ps {
 
 }  // namespace multi_camera_pose
 
-#endif  // MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP4PS_H_
+#endif  // MULTICAMERAPOSE_SRC_GENERALIZED_POSE_SOLVER_GP3P_H_

@@ -25,7 +25,7 @@ include_directories (
 #add_executable (multi_camera_pose generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/types.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.h ${POSELIB_INCLUDE_DIR}/PoseLib/gp4ps.cc ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.h ${POSELIB_INCLUDE_DIR}/PoseLib/re3q3.cc)
 #target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY}) # ${CERES_LIBRARIES})
 
-add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h)
+add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h)
 target_link_libraries (multi_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
 
 if(MSVC)	
