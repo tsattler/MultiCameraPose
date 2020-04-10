@@ -235,7 +235,7 @@ int main(int argc, char** argv) {
   }
 
   for (int i = 0; i < kNumQuery; ++i) {
-//     if (best_poses[i].num_inliers <= 5) continue;
+    if (best_poses[i].num_inliers <= 5) continue;
     
     Eigen::Matrix3d R = best_poses[i].R;
     Eigen::Vector3d t = best_poses[i].t;
