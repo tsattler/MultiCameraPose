@@ -47,7 +47,7 @@
 #include <RansacLib/ransac.h>
 
 #include "common.h"
-#include "generalized_pose_solver_gp4ps.h"
+#include "generalized_pose_solver_gp3p.h"
 #include "types.h"
 
 

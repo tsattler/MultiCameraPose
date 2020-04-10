@@ -25,7 +25,7 @@ include_directories (
 add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h common.h)
 target_link_libraries (multi_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
 
-add_executable (fixed_rig_camera_pose fixed_rig_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h types.h common.h)
+add_executable (fixed_rig_camera_pose fixed_rig_camera_pose.cc generalized_pose_solver_gp3p.cc generalized_pose_solver_gp3p.h types.h common.h)
 target_link_libraries (fixed_rig_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
 
 if(MSVC)	
