@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.0)
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
-  set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
-endif ()
+#if (EXISTS "${CMAKE_SOURCE_DIR}/cmake")
+#  set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+#endif ()
 
 SET(CMAKE_CXX_FLAGS "-std=gnu++11")
 
@@ -18,7 +18,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}
   ${EIGEN_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
-  ${POSELIB_INCLUDE_DIR}
+  ${POSELIB_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/ext/RansacLib
 )
 
@@ -26,7 +26,7 @@ include_directories (
 #target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY}) # ${CERES_LIBRARIES})
 
 add_executable (multi_camera_pose multi_camera_pose.cc generalized_pose_solver_gp4ps.cc generalized_pose_solver_gp4ps.h)
-target_link_libraries (multi_camera_pose ${POSELIB_LIBRARY} ${CERES_LIBRARIES})
+target_link_libraries (multi_camera_pose ${POSELIB_LIBRARIES} ${CERES_LIBRARIES})
 
 if(MSVC)	
   target_compile_options(multi_camera_pose PRIVATE /bigobj /fp:fast)
