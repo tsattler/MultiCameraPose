@@ -20,7 +20,7 @@ When using this software for publications, please cite
 ```
 @inproceedings{wald2020,
   title={{Beyond Controlled Environments: 3D Camera Re-Localization in Changing Indoor Scenes}},
-  author={Johanna Wald, Torsten Sattler, Stuart Golodetz, Tommaso Cavallari, Federico Tombari},
+  author={Walk, Johanna and Sattler, Torsten and Golodetz, Stuart and Cavallari, Tommaso and Tombari, Federico},
   booktitle = {Proceedings IEEE European Conference on Computer Vision (ECCV)},
   year = {2020}
 }
