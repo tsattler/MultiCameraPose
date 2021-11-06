@@ -13,6 +13,14 @@ RansacLib and PoseLib are included as a submodule. After cloning the repository,
 git submodule update --init --recursive
 ```
 
+To compile the project (under Linux), simple type
+``
+mkdir build
+cd build/
+cmake -DCMAKE_BUILD_TYPE=Release ../
+make
+``
+
 ## Running the executables
 There are two executables" `fixed_rig_camera_pose` and `multi_camera_pose`. 
 `fixed_rig_camera_pose` assumes that the absolute scale of the transformation between the images is known. 
