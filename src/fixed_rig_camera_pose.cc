@@ -46,6 +46,8 @@
 
 #include <RansacLib/ransac.h>
 
+#include <undistortion/undistortion.h>
+
 #include "common.h"
 #include "generalized_pose_solver_gp3p.h"
 #include "types.h"
@@ -166,7 +168,8 @@ int main(int argc, char** argv) {
       for (int j = 0; j < kNumMatches; ++j) {
         double u = points2D_rig[j][0] / query_data[camera_ids[j] + i].focal_x;
         double v = points2D_rig[j][1] / query_data[camera_ids[j] + i].focal_y;
-        IterativeUndistortion(query_data[camera_ids[j] + i], &u, &v);
+        ext::undistortion::IterativeUndistortion(query_data[camera_ids[j] + i],
+                                                 &u, &v);
         points2D_rig[j][0] = u * query_data[camera_ids[j] + i].focal_x;
         points2D_rig[j][1] = v * query_data[camera_ids[j] + i].focal_y;
       }
