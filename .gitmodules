@@ -1,3 +1,6 @@
 [submodule "ext/RansacLib"]
 	path = ext/RansacLib
 	url = https://github.com/tsattler/RansacLib
+[submodule "ext/PoseLib"]
+	path = ext/PoseLib
+	url = https://github.com/vlarsson/PoseLib.git
